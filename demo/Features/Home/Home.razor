@@ -1,0 +1,54 @@
+﻿@page "/home"
+@inject HttpClient Http
+@inject NavigationManager NavigationManager;
+@using System.Globalization;
+@using DataLayer.Watches
+@using DataLayer.Cards
+@using DataLayer.Leilao
+
+@inject ICardRepository _db
+@inject IWatchRepository WatchRepo
+@inject ILeilaoRepository LeilaoRepo
+
+<PageTitle>Home</PageTitle>
+
+<AuthorizeView Roles="Client">
+    <Authorized>
+        @if (_leiloes == null)
+        {
+            <p>Loading leiloes...</p>
+        }
+        else
+        {
+            <div class="grid">
+                @foreach (var leilao in _leiloes)
+                {
+                    if (dataFimLeilao(leilao)) {
+                        <CardComponent leilao="leilao" />
+                    }
+                }
+            </div>
+        }
+    </Authorized>
+</AuthorizeView>
+
+@code {
+    private List<DataLayer.Leilao.LeilaoModel> _leiloes;
+
+    private bool dataFimLeilao(LeilaoModel leilao)
+    {
+        if (DateTime.ParseExact(leilao.DataFim, "MM/dd/yyyy HH:mm:ss", CultureInfo.InvariantCulture) > DateTime.Now)
+        {
+            return true;
+        }
+        else
+        {
+            return false;
+        }
+    }
+
+    protected override async Task OnInitializedAsync()
+    {
+        _leiloes = await LeilaoRepo.FindAll();
+    }
+}

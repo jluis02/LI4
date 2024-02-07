@@ -1,0 +1,102 @@
+﻿.container {
+    display: flex;
+    width: 600px;
+    padding-top: 20px;
+}
+
+.noti-msg {
+    flex: 1;
+    display: flex;
+    align-items: center;
+    background-color: white;
+    margin-right: 10px;
+    margin-left: 10px;
+    border-radius: 10px;
+    cursor: pointer;
+}
+
+    .noti-msg span {
+        text-align: center;
+        padding-left: 20px;
+    }
+
+.noti-input {
+    flex: 1;
+    display: flex;
+    align-items: center;
+    background-color: white;
+    margin-right: 10px;
+    margin-left: 10px;
+    border-radius: 10px;
+    height: 50px;
+    cursor: pointer;
+    padding: 0 20px;
+}
+
+    .noti-input span {
+        text-align: center;
+        padding-left: 20px;
+    }
+
+.title {
+    margin-right: 10px;
+}
+
+.noti-button {
+    width: 50px;
+    height: 50px;
+    background-color: white;
+    margin-right: 20px;
+    border-radius: 20%;
+}
+
+    .noti-button span {
+        align-items: center;
+        justify-content: space-between;
+    }
+
+.bi-trash3-fill-not {
+    background-color: #007bff;
+    color: white;
+    border: none;
+    padding: 10px;
+    border-radius: 10px;
+    cursor: pointer;
+}
+
+.bi {
+    display: inline-block;
+    position: relative;
+    width: 1.5rem;
+    height: 1.5rem;
+    margin-right: 0.75rem;
+    margin-left: 0.75rem;
+    margin-bottom: 10px;
+    top: 5px;
+    background-size: cover;
+    padding-left: 5px;
+    border: none;
+    background-color: white;
+}
+
+.bi-trash3-fill-not {
+    background-image: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="red" class="bi bi-trash3-fill" viewBox="0 0 16 16"><path d="M11 1.5v1h3.5a.5.5 0 0 1 0 1h-.538l-.853 10.66A2 2 0 0 1 11.115 16h-6.23a2 2 0 0 1-1.994-1.84L2.038 3.5H1.5a.5.5 0 0 1 0-1H5v-1A1.5 1.5 0 0 1 6.5 0h3A1.5 1.5 0 0 1 11 1.5m-5 0v1h4v-1a.5.5 0 0 0-.5-.5h-3a.5.5 0 0 0-.5.5M4.5 5.029l.5 8.5a.5.5 0 1 0 .998-.06l-.5-8.5a.5.5 0 1 0-.998.06m6.53-.528a.5.5 0 0 0-.528.47l-.5 8.5a.5.5 0 0 0 .998.058l.5-8.5a.5.5 0 0 0-.47-.528M8 4.5a.5.5 0 0 0-.5.5v8.5a.5.5 0 0 0 1 0V5a.5.5 0 0 0-.5-.5"/></svg>')
+}
+
+.remove-button {
+    background-color: #dc3545;
+    color: #fff;
+    border: none;
+    border-radius: 20px;
+    padding: 5px 10px;
+    cursor: pointer;
+    margin-bottom: 10px;
+}
+
+@media (max-width: 600px) {
+    .container {
+        display: flex;
+        width: 380px;
+        padding-top: 20px;
+    }
+}

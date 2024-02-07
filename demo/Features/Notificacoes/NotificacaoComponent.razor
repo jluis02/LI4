@@ -1,0 +1,92 @@
+﻿@using DataLayer.Notificacao
+@using DataLayer.Utilizador
+@using DataLayer.Leilao
+@inject Microsoft.AspNetCore.Components.NavigationManager NavigationManager
+@inject NavigationManager Navigation
+@inject INotificacaoRepository NotificacaoRepo
+@inject IUtilizadorRepository UtilizadorRepo
+@inject ILeilaoRepository LeilaoRepo
+
+<div class="notification-box">
+    <div class="comp">
+        @if (notificacao != null)
+        {
+            <span>
+                @switch (notificacao.Tipo)
+                {
+                    case "Ganhou":
+                        <div class="container">
+                            <div class="noti-msg" @onclick="NavigateToPage">
+                                <span>Ganhou o leilão! Contacte o dono do relógio: @userInfo?.email</span>
+                            </div>
+                            <div class="noti-button">
+                                <button class="bi bi-trash3-fill-not" aria-hidden="true" @onclick="RemoveNotification"></button>
+                            </div>
+                        </div>
+                        break;
+
+                    case "Avalia":
+                        <div class="container">
+                            <div class="noti-input">
+                                <div class="title">Classificação @userInfo?.username: </div>
+                                <input type="text" @bind="avaliacao" placeholder="Enter something..." class="custom-input">
+                                <button class="confirmation-button" aria-hidden="true" @onclick="UpdateAvaliacaoNLeiloe">Confirm</button>
+                            </div>
+                            <div class="noti-button">
+                                <button class="bi bi-trash3-fill-not" aria-hidden="true" @onclick="RemoveNotification"></button>
+                            </div>
+                        </div>
+                        break;
+
+                    default:
+                        <span>Mensagem de notificação padrão</span>
+                        break;
+                }
+            </span>
+        }
+    </div>
+</div>
+
+@code {
+    [Parameter, EditorRequired]
+    public NotificacaoModel notificacao { get; set; } = default!;
+    private UtilizadorModel userInfo;
+    private UtilizadorModel leilaoInfo;
+
+    private int avaliacao = 5;
+
+    private void RemoveNotification()
+    {
+        NotificacaoRepo.Remove(notificacao.Id);
+
+        NavigationManager.NavigateTo("/notificacoes", forceLoad: true);
+    }
+
+    private async Task UpdateAvaliacaoNLeiloe()
+    {
+        //UtilizadorModel user = await UtilizadorRepo.FindId(notificacao.Utilizador_idUtilizador);
+        UtilizadorRepo.UpdateAvaliacaoMedia(userInfo.username, avaliacao);
+
+        UtilizadorRepo.UpdateNumLeilao(userInfo.username, userInfo.numeroDeLeiloesFeitos + 1);
+
+        RemoveNotification();
+    }
+
+    private void NavigateToPage()
+    {
+        // Adicione o redirecionamento para a página desejada
+        Navigation.NavigateTo($"/leilao/{notificacao.Leilao_idLeilao}");
+    }
+
+    protected override async Task OnInitializedAsync()
+    {
+        try
+        {
+            userInfo = await LeilaoRepo.FindUser(notificacao.Leilao_idLeilao);
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Erro ao recuperar informações do utilizador: {ex.Message}");
+        }
+    }
+}

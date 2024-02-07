@@ -1,0 +1,101 @@
+﻿.card {
+    margin: 20px;
+    border: 1px solid #ccc;
+    border-radius: 10px;
+    box-shadow: 0 0 5px rgba(0, 0, 0, 0.1);
+    overflow: hidden;
+}
+
+.card-header {
+    background-color: #f7f7f7;
+    border-bottom: 1px solid #ccc;
+    padding: 10px;
+}
+
+.card-body {
+    padding: 20px;
+}
+
+.label-text {
+    font-weight: bold;
+    padding-bottom: 5px;
+    display: block;
+}
+
+.form-columns {
+    display: flex;
+    justify-content: space-between;
+}
+
+.form-column {
+    flex: 1;
+    margin-right: 20px;
+}
+
+.form-group {
+    margin-bottom: 15px;
+}
+
+input, textarea, button, select {
+    width: calc(100% - 12px);
+    padding: 8px;
+    box-sizing: border-box;
+    border: none;
+    border-radius: 8px;
+    background-color: lightgray;
+    color: rgb(0, 0, 0);
+}
+
+.button-9 {
+    width: 120px;
+    background-color: #4CAF50;
+    color: #fff;
+}
+
+.radio-options {
+    display: flex;
+    align-items: center;
+}
+
+.radio-option {
+    display: flex;
+    align-items: center;
+    margin-right: 15px;
+}
+
+    .radio-option input {
+        margin-right: 5px;
+    }
+
+.price-group {
+    width: 200px;
+    margin: 0 auto;
+}
+
+.alert {
+    padding: 10px;
+    margin-bottom: 10px;
+    border: 1px solid transparent;
+    border-radius: 4px;
+}
+
+.alert-danger {
+    color: #a94442;
+    background-color: #f2dede;
+    border-color: #ebccd1;
+}
+
+@media (max-width: 767px) {
+    .form-columns {
+        flex-direction: column;
+    }
+
+    .form-column {
+        flex: 1;
+        margin-right: 0;
+    }
+
+    .button-9 {
+        width: 100%;
+    }
+}

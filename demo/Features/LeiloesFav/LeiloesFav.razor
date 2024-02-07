@@ -1,0 +1,44 @@
+﻿@page "/leiloesfav"
+@inject ILeilaoRepository LeilaoRepo
+@inject AuthenticationStateProvider AuthenticationStateProvider
+@using DataLayer.LeilaoFavorito
+@using DataLayer.Leilao
+
+<PageTitle>Leilões Favoritos</PageTitle>
+
+<div class="card mt-3">
+    <div class="card-header">
+        <h2>Leilões Favoritos</h2>
+    </div>
+</div>
+
+@if (_leiloesFavoritos == null || _leiloesFavoritos.Count == 0)
+{
+    <p>Nenhum leilão favorito encontrado.</p>
+}
+else
+{
+    <div class="grid">
+        @foreach (var leilao in _leiloesFavoritos)
+        {
+            <CardComponent leilao="leilao" />
+        }
+    </div>
+}
+
+@code {
+    private string username;
+    private List<LeilaoModel> _leiloesFavoritos;
+
+    protected override async Task OnInitializedAsync()
+    {
+        var authState = await AuthenticationStateProvider.GetAuthenticationStateAsync();
+        var user = authState.User;
+
+        var userIdClaim = user.FindFirst("UserId");
+        var userId = userIdClaim.Value;
+
+        _leiloesFavoritos = await LeilaoRepo.FindLeilaoFav(int.Parse(userId));
+        
+    }
+}

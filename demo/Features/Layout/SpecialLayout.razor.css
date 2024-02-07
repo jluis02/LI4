@@ -1,0 +1,83 @@
+﻿.page {
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    background: url('https://cdn.discordapp.com/attachments/816683287648927746/1198760671953821918/close-up-clock-with-time-change.jpg?ex=65c013e0&is=65ad9ee0&hm=108aab8907c30d1453eea7ef23678ba26f071013ab4243611f28f354c1a28ba5&') no-repeat center center fixed;
+    background-size: cover;
+    height: 100vh;
+}
+
+main {
+    flex: 1;
+}
+
+
+.top-row {
+    justify-content: center;
+    height: 3.5rem;
+    display: flex;
+    align-items: center;
+    background-color: rgba(0, 0, 0, 0.6);
+}
+
+.brand {
+    font-size: 1.5rem;
+    font-weight: bold;
+    color: white;
+    text-decoration: none;
+}
+
+@media (max-width: 640.98px) {
+    .top-row {
+        justify-content: space-between;
+    }
+}
+
+@media (min-width: 641px) {
+    .page {
+        flex-direction: row;
+    }
+
+    .sidebar {
+        width: 250px;
+        height: 100vh;
+        position: sticky;
+        top: 0;
+    }
+
+    .top-row {
+        position: sticky;
+        top: 0;
+        z-index: 1;
+    }
+
+        .top-row.auth ::deep a:first-child {
+            flex: 1;
+            text-align: right;
+            width: 0;
+        }
+
+    .top-row, article {
+        padding-left: 2rem !important;
+        padding-right: 1.5rem !important;
+    }
+}
+
+#blazor-error-ui {
+    background: lightyellow;
+    bottom: 0;
+    box-shadow: 0 -1px 2px rgba(0, 0, 0, 0.2);
+    display: none;
+    left: 0;
+    padding: 0.6rem 1.25rem 0.7rem 1.25rem;
+    position: fixed;
+    width: 100%;
+    z-index: 1000;
+}
+
+    #blazor-error-ui .dismiss {
+        cursor: pointer;
+        position: absolute;
+        right: 0.75rem;
+        top: 0.5rem;
+    }

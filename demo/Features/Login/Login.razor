@@ -1,0 +1,109 @@
+﻿@page "/entrar"
+@layout SpecialLayout
+@using BlazorServerAutheticationAndAuthorization.Authetication;
+@using DataLayer.Utilizador
+@inject IJSRuntime js
+@inject IUtilizadorRepository _db
+@inject AuthenticationStateProvider authStateProvider
+@inject NavigationManager navManager
+
+<PageTitle>Entrar</PageTitle>
+
+<form action="/login" method="post" asp-modal="true" @onsubmit="LoginUser">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h1 class="modal-title">Entrar</h1>
+            </div>
+            <div class="modal-body">
+                <div class="form-group">
+                    <label for="username">Nome de Utilizador:</label>
+                    <input type="text" id="username" name="username" placeholder="Username" class="form-control" @bind="username">
+                </div>
+
+                <div class="form-group">
+                    <label for="password">Senha:</label>
+                    <input type="password" id="password" name="password" placeholder="Senha" class="form-control" @bind="password">
+                </div>
+
+                <div class="button text-center">
+                    <button type="submit" class="btn btn-primary">
+                        <strong>Entrar</strong>
+                    </button>
+                </div>
+            </div>
+
+            <div class="modal-footer">
+                <!-- You can remove or customize the footer as needed -->
+            </div>
+        </div>
+    </div>
+</form>
+
+@*
+<div class="container mt-5">
+    <div class="row justify-content-center">
+        <div class="card mt-3" style="display: @(showMessageBox ? "block" : "none")">
+            <div class="card-body text-center">
+                <p>Palavra-passe ou e-mail inválido!</p>
+            </div>
+        </div>
+    </div>
+</div>
+*@
+@code {
+    private string username;
+    private string password;
+    //private bool showMessageBox = false;
+
+    private async Task LoginUser()
+    {
+        Console.WriteLine("AQUI_____________________________________");
+        Console.WriteLine($"nome: {username}");
+        Console.WriteLine($"password: {password}");
+
+        UtilizadorModel userFounded = await _db.Find(username);
+
+        if(userFounded == null || userFounded.password != password)
+        {
+            await js.InvokeVoidAsync("alert", "nome de utilizador ou password inválidos");
+            return;
+        }
+
+        var customAuthStateProvider = (CustomAutheticationStateProvider) authStateProvider;
+        await customAuthStateProvider.UpdateAuthenticationState(new UserSession
+            {
+                UserName = userFounded.username,
+                Role = "Client",
+                UserId = userFounded.idUtilizador.ToString(),
+                UserMediumEval = userFounded.avaliacaoMedia.ToString(),
+                UserNumLeiloesFavoritos = userFounded.numeroDeLeiloesFeitos.ToString(),
+                UserRegisterDate = userFounded.dataDeRegisto
+            });
+
+        navManager.NavigateTo("/home", true);
+        /*
+        if (userFounded == null)
+        {
+            showMessageBox = true;
+            StateHasChanged();
+
+            await Task.Delay(2000);
+
+            showMessageBox = false;
+            StateHasChanged();
+            Console.WriteLine("Não encontrei nada chefe, um grande abraço!");
+        }
+        else
+        {
+            Console.WriteLine("Id: " + userFounded.Id);
+            Console.WriteLine("Username: " + userFounded.username);
+            Console.WriteLine("password: " + userFounded.Id);
+            Console.WriteLine("Avaliação: " + userFounded.avaliacaoMedia);
+            Console.WriteLine("Num leilões: " + userFounded.numeroDeLeiloesFeitos);
+            Console.WriteLine("Data de registo: " + userFounded.dataDeRegisto);
+
+            navManager.NavigateTo("/mainlayout", true);
+        } */
+    }
+}

@@ -1,0 +1,84 @@
+﻿.flex-container {
+    width: 70%;
+    margin: 0 auto;
+    background-color: white; 
+    padding: 20px; 
+    border-radius: 10px;
+    box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+}
+
+.card-body input[type="text"],
+.card-body input[type="number"] {
+    background-color: lightgray;
+}
+
+.card {
+    margin: 20px;
+    border: 1px solid #ccc;
+    border-radius: 20px;
+    box-shadow: 0 0 5px rgba(0, 0, 0, 0.1);
+}
+
+.card-header {
+    background-color: #f7f7f7;
+    border-bottom: 1px solid #ccc;
+    padding: 10px;
+}
+
+.card-body img {
+    max-width: 100%;
+    height: auto;
+    border-radius: 3%;
+}
+
+.card-body dl {
+    margin: 0;
+    display: flex;
+    flex-wrap: wrap;
+}
+
+.card-body dt {
+    font-weight: bold;
+    width: 200px;
+    margin: 10px 0;
+    border-radius: 10px;
+}
+
+.card-body dd {
+    margin-bottom: 5px;
+    border: 1px solid #ccc;
+    padding: 10px;
+    width: calc(100% - 200px);
+    border-radius: 10px;
+}
+
+.text-right {
+    text-align: right;
+}
+
+.licitacao-column {
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-start;
+}
+
+.licitacao-item {
+    margin-bottom: 10px;
+}
+
+.grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+    gap: 20px;
+}
+
+.btn-remove {
+    background-color: red;
+    border-color: darkred;
+    color: white; 
+}
+
+    .btn-remove:hover {
+        background-color: darkred;
+        border-color: darkred;
+    }

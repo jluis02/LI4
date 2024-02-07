@@ -1,0 +1,81 @@
+﻿.modal-dialog {
+    max-width: 300px;
+    max-height: 300px;
+    margin: 50px auto;
+    background-color: rgba(0, 0, 0, 0.5);
+    border-radius: 10px;
+    color: white;
+    transition: background-color 0.3s; 
+}
+
+
+.modal-body {
+    padding: 20px;
+}
+
+.title {
+    padding-bottom: 20px;
+}
+
+.modal-footer {
+    padding: 20px;
+}
+
+.form-group {
+    margin-bottom: 15px;
+}
+
+.form-control {
+    font-size: 16px;
+    color: white; /* Set text color to white */
+}
+
+.modal-title {
+    margin: 0;
+    padding: 10px; /* Add padding to the title */
+    color: white; /* Set text color to white */
+    transition: font-weight 0.3s; /* Add transition for smooth effect */
+}
+
+    .modal-title:hover {
+        font-weight: bold; /* Make the title bold on hover */
+    }
+
+.modal-header {
+    padding: 10px;
+}
+
+.btn-primary,
+.btn-success {
+    width: 150px;
+    height: 50px;
+    font-size: 18px;
+    border: none;
+}
+
+.btn-primary {
+    background-color: #9C9C9C;
+    color: white; /* Set text color to white */
+    transition: background-color 0.3s; /* Add transition for smooth effect */
+}
+
+.btn-success {
+    background-color: #9C9C9C;
+    color: white; /* Set text color to white */
+    transition: background-color 0.3s; /* Add transition for smooth effect */
+}
+
+.btn-primary:hover {
+    background-color: #333; /* Dark gray color on hover */
+}
+
+.btn-success:hover {
+    background-color: #333; /* Dark gray color on hover */
+}
+
+hr {
+    margin-top: 20px;
+    margin-bottom: 20px;
+    border: 0;
+    border-top: 1px solid #ccc;
+}

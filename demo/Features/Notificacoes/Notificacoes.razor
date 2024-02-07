@@ -1,0 +1,58 @@
+﻿@page "/notificacoes"
+@using DataLayer.Notificacao
+@using DataLayer.Utilizador
+@inject IUtilizadorRepository _db
+@inject AuthenticationStateProvider AuthenticationStateProvider
+@inject INotificacaoRepository NotificacaoRepo
+
+<PageTitle>Notificações</PageTitle>
+
+<div class="card mt-3">
+    <div class="card-header">
+        <h2>Notificações</h2>
+    </div>
+</div>
+
+
+<AuthorizeView Roles="Client">
+    <Authorized>
+        @if (notificacoes != null && notificacoes.Any())
+        {
+            <div class="grid">
+                <div class="column">
+                    @foreach (var notificacao in notificacoes)
+                    {
+                        <div class="licitacao-item">
+                            <NotificacaoComponent notificacao="notificacao" />
+                        </div>
+                    }
+                </div>
+            </div>
+        }
+        else
+        {
+            <p>Não há Notificações.</p>
+        }
+    </Authorized>
+    <NotAuthorized>
+        <h1>Não te encontras autenticado.</h1>
+    </NotAuthorized>
+</AuthorizeView>
+
+
+@code {
+    private string username;
+    private UtilizadorModel userFounded;
+    private List<DataLayer.Notificacao.NotificacaoModel> notificacoes;
+
+    protected override async Task OnInitializedAsync()
+    {
+        var authState = await AuthenticationStateProvider.GetAuthenticationStateAsync();
+        var user = authState.User;
+        username = user.Identity.Name;
+
+        userFounded = await _db.Find(username);
+
+        notificacoes = await NotificacaoRepo.FindAllFromUtilizador(userFounded.idUtilizador);
+    }
+}

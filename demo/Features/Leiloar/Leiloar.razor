@@ -1,0 +1,296 @@
+﻿@page "/leiloar"
+@using DataLayer.Watches
+@using DataLayer.Leilao
+@using DataLayer.Utilizador
+@using DataLayer.Notificacao
+@using DataLayer.Licitacao
+@using System.Globalization;
+@inject INotificacaoRepository NotificacaoRepo
+@inject AuthenticationStateProvider authStateProvider
+@inject NavigationManager NavigationManager
+@inject IJSRuntime js
+@inject ILicitacaoRepository LicitacaoRepo
+
+<PageTitle>Leiloar Relógio</PageTitle>
+
+<AuthorizeView Roles="Client">
+    <Authorized>
+        <div class="card">
+            <div class="card-header">
+                <h2>Leiloar Relógio</h2>
+            </div>
+            <div class="card-body">
+                <form>
+                    <div class="form-columns">
+                        <div class="form-column">
+                            <div class="form-group">
+                                <label><span class="label-text">Marca:</span></label>
+                                <input type="text" @bind="marca" />
+                            </div>
+
+                            <div class="form-group">
+                                <label><span class="label-text">Modelo:</span></label>
+                                <input type="text" @bind="modelo" />
+                            </div>
+
+                            <div class="form-group">
+                                <label><span class="label-text">Número de Série:</span></label>
+                                <input type="text" @bind="numeroSerie" />
+                            </div>
+
+                            <div class="form-group">
+                                <label><span class="label-text">Foto:</span></label>
+                                <InputFile multiple OnChange="HandleFileInput" />
+                            </div>
+
+                            <div class="form-group">
+                                <label><span class="label-text">Descrição:</span></label>
+                                <textarea @bind="descricao" style="height: 130px;"></textarea>
+                            </div>
+                        </div>
+
+                        <div class="form-column">
+                            <div class="form-group">
+                                <label><span class="label-text">Estado de Conservação:</span></label>
+                                <select @bind="estadoConservacao">
+                                    <option value="Novo">Novo</option>
+                                    <option value="Usado">Usado</option>
+                                    <option value="MuitoUsado">Muito Usado</option>
+                                </select>
+                            </div>
+
+                            <div class="form-group">
+                                <label><span class="label-text">Tem Caixa Original?</span></label>
+                                <div class="radio-options">
+                                    <div class="radio-option">
+                                        <input type="radio" id="temCaixaOriginalSim" name="temCaixaOriginal" @bind="temCaixaOriginal" />
+                                        <label for="temCaixaOriginalSim">Sim</label>
+                                    </div>
+                                    <div class="radio-option">
+                                        <input type="radio" id="temCaixaOriginalNao" name="temCaixaOriginal" @bind="temCaixaOriginal" />
+                                        <label for="temCaixaOriginalNao">Não</label>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="form-group">
+                                <label><span class="label-text">Relógio Funciona?</span></label>
+                                <div class="radio-options">
+                                    <div class="radio-option">
+                                        <input type="radio" id="relogioFuncionaSim" name="relogioFunciona" @bind="relogioFunciona" />
+                                        <label for="relogioFuncionaSim">Sim</label>
+                                    </div>
+                                    <div class="radio-option">
+                                        <input type="radio" id="relogioFuncionaNao" name="relogioFunciona" @bind="relogioFunciona" />
+                                        <label for="relogioFuncionaNao">Não</label>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="form-group">
+                                <label><span class="label-text">Ano de Fabrico:</span></label>
+                                <input type="number" @bind="anoFabrico" />
+                            </div>
+
+                            <div class="form-group">
+                                <label><span class="label-text">Data e Hora de Início:</span></label>
+                                <input type="datetime-local" @bind="dataHoraInicio" />
+                            </div>
+
+                            <div class="form-group">
+                                <label><span class="label-text">Data e Hora de Fecho:</span></label>
+                                <input type="datetime-local" @bind="dataHoraFecho" />
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="price-group" style="text-align: center;">
+                        <label><span class="label-text">Preço Inicial: </span></label>
+                        <input type="text" @bind="precoBase" />
+                    </div>
+
+                    <div class="form-group" style="text-align: center; margin-top: 20px;">
+                        <button class="button-9" @onclick="CriarLeilao">
+                            Criar Leilão
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+
+    </Authorized>
+    <NotAuthorized>
+        <h2>Não autorizado</h2>
+    </NotAuthorized>
+</AuthorizeView>
+
+
+@inject IWatchRepository WatchRepo
+@inject ILeilaoRepository LeilaoRepo
+@inject IUtilizadorRepository UtilizadorRepo
+
+@code {
+    private string modelo;
+    private string numeroSerie;
+    private string descricao;
+    private string marca;
+    private string estadoConservacao = "Novo";
+    private bool temCaixaOriginal;
+    private int anoFabrico = 2000;
+    private bool relogioFunciona;
+    private double precoBase;
+    private DateTime dataHoraInicio = DateTime.Now;
+    private DateTime dataHoraFecho = DateTime.Now.AddHours(1);
+    private string errorMessage;
+
+    private string username;
+    private UtilizadorModel userFounded;
+
+    private byte[] imagemRelogio; // Alterada para ser um array de bytes
+
+    private int idLeilao;
+
+    private Timer tempoLicitacao;
+
+    private async Task HandleFileInput(InputFileChangeEventArgs e)
+    {
+        var file = e.File;
+
+        using (var stream = file.OpenReadStream())
+        {
+            var memoryStream = new MemoryStream();
+            await stream.CopyToAsync(memoryStream);
+            imagemRelogio = memoryStream.ToArray();
+        }
+    }
+
+    private async Task enviarNotificacaoVencedora()
+    {
+
+        List<DataLayer.Licitacao.LicitacaoModel> licitacoes = await LicitacaoRepo.FindAllFromLeilao(idLeilao);
+        LicitacaoModel ultimaLicitacao = licitacoes.OrderByDescending(bid => DateTime.TryParseExact(bid.Data, "MM/dd/yyyy HH:mm:ss", CultureInfo.InvariantCulture, DateTimeStyles.None, out var parsedDate) ? parsedDate : DateTime.MinValue)
+                                         .FirstOrDefault();
+
+        var novaNotificacao = new NotificacaoModel
+            {
+                Tipo = "Ganhou",
+                Utilizador_idUtilizador = ultimaLicitacao.Utilizador_idUtilizador,
+                Leilao_idLeilao = ultimaLicitacao.Leilao_idUtilizador
+            };
+
+        var novaNotificacaoAval = new NotificacaoModel
+            {
+                Tipo = "Avalia",
+                Utilizador_idUtilizador = ultimaLicitacao.Utilizador_idUtilizador,
+                Leilao_idLeilao = ultimaLicitacao.Leilao_idUtilizador
+            };
+
+        await NotificacaoRepo.Create(novaNotificacao);
+        await NotificacaoRepo.Create(novaNotificacaoAval);
+    }
+
+    private async Task SetTempo(int leilaoId)
+    {
+        LeilaoModel leilaoInfo = await LeilaoRepo.Find(leilaoId);
+
+        TimeSpan tempoEspera;
+
+        if (DateTime.ParseExact(leilaoInfo.DataFim, "MM/dd/yyyy HH:mm:ss", CultureInfo.InvariantCulture) > DateTime.Now)
+        {
+            tempoEspera = DateTime.ParseExact(leilaoInfo.DataFim, "MM/dd/yyyy HH:mm:ss", CultureInfo.InvariantCulture) - DateTime.Now;
+            Console.WriteLine($"tempo de espera: {tempoEspera}");
+
+            tempoLicitacao = new Timer(async (state) => await FinalizaLeilao(), null, tempoEspera, Timeout.InfiniteTimeSpan);
+        }
+    }
+
+    private async Task FinalizaLeilao()
+    {
+        Console.WriteLine("Finalizei o leilao!");
+        await enviarNotificacaoVencedora();
+    }
+
+    private async Task CriarLeilao()
+    {
+
+        Console.WriteLine("Inicio da criação do leilão...");
+
+        // Verificar se todos os campos obrigatórios estão preenchidos
+        if (string.IsNullOrWhiteSpace(modelo) || string.IsNullOrWhiteSpace(numeroSerie) || string.IsNullOrWhiteSpace(marca) ||
+        imagemRelogio == null || imagemRelogio.Length == 0 || precoBase < 0)
+        {
+            errorMessage = "Preencha todos os campos obrigatórios.";
+            await js.InvokeVoidAsync("alert", errorMessage);
+            return;
+        }
+
+        Console.WriteLine($"Modelo: {modelo}");
+        Console.WriteLine($"Número de série: {numeroSerie}");
+        Console.WriteLine($"Descrição: {descricao}");
+        Console.WriteLine($"DataHoraInicio: {dataHoraInicio.ToString("yyyy-MM-dd HH:mm:ss")}");
+        Console.WriteLine($"DataHoraFecho: {dataHoraFecho.ToString("yyyy-MM-dd HH:mm:ss")}");
+        Console.WriteLine($"Tamanho da Imagem: {imagemRelogio.Length} bytes");
+
+        var authState = await authStateProvider.GetAuthenticationStateAsync();
+        var userIdString = authState.User.FindFirst("UserId")?.Value;
+        int userId = int.Parse(userIdString);
+
+        // Crie um objeto WatchModel com os dados do formulário
+        var novoRelogio = new WatchModel
+            {
+                Modelo = modelo,
+                NumeroSerie = numeroSerie,
+                Descricao = descricao,
+                Imagem = imagemRelogio, // Agora, só uma imagem
+                Marca = marca,
+                EstadoConservacao = estadoConservacao,
+                TemCaixaOriginal = temCaixaOriginal,
+                AnoFabrico = anoFabrico,
+                RelogioFunciona = relogioFunciona,
+                PrecoBase = precoBase
+            };
+
+        // Adicione o relógio à base de dados usando o WatchRepository
+        int idWatch = await WatchRepo.AddClockAsync(novoRelogio);
+
+        Console.WriteLine("-----------------------------");
+        Console.WriteLine($"Relogio ID: {idWatch}");
+
+        var novoLeilao = new LeilaoModel
+            {
+                Relogio_id = idWatch,
+                DataInicio = dataHoraInicio.ToString("yyyy-MM-dd HH:mm:ss"),
+                DataFim = dataHoraFecho.ToString("yyyy-MM-dd HH:mm:ss"),
+                Utilizador_idUtilizador = userId,
+            };
+
+        idLeilao = await LeilaoRepo.Create(novoLeilao);
+
+        await SetTempo(idLeilao);
+
+        Console.WriteLine("Objeto WatchModel criado com sucesso.");
+
+        Console.WriteLine("Bytes da Imagem antes de salvar na base de dados:");
+        Console.WriteLine(BitConverter.ToString(imagemRelogio));
+
+        Console.WriteLine("Leilão criado com sucesso.");
+
+        errorMessage = ""; // Limpar mensagem de erro se não houver erro
+        await js.InvokeVoidAsync("showSuccessNotification", "Leilão criado com sucesso.");
+        await Task.Delay(3000);
+        NavigationManager.NavigateTo("/leiloar");
+
+        var user = authState.User;
+
+        username = user.Identity.Name;
+
+        userFounded = await UtilizadorRepo.Find(username);
+
+        userFounded = await UtilizadorRepo.UpdateNumLeilao(username, userFounded.numeroDeLeiloesFeitos + 1);
+        
+        errorMessage = "";
+        await js.InvokeVoidAsync("showSuccessNotification", "Leilão criado com sucesso.");
+        await Task.Delay(3000);
+        NavigationManager.NavigateTo("/leiloar");
+    }
+}

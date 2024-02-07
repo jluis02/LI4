@@ -1,0 +1,97 @@
+﻿@page "/perfilpublico/{username}"
+@using BlazorServerAutheticationAndAuthorization.Authetication
+@using DataLayer.Utilizador
+@using DataLayer.Leilao
+@inject IJSRuntime js
+@inject IUtilizadorRepository _db
+@inject NavigationManager navManager
+@inject ILeilaoRepository LeilaoRepo
+
+<PageTitle>@Username</PageTitle>
+
+<AuthorizeView Roles="Client">
+    <Authorized>
+        <div class="card">
+            <div class="card-header">
+                <h2>Perfil</h2>
+            </div>
+            <div class="card-body">
+                <div class="row align-items-center">
+                    <div class="col-md-4">
+                        @if (userFounded?.Imagem != null && userFounded?.Imagem.Length > 0)
+                        {
+                            string imageBase64 = Convert.ToBase64String(userFounded?.Imagem);
+                            <img src="data:image/jpeg;base64,@imageBase64" class="watch-img-top" alt="@userFounded?.idUtilizador">
+                        }
+                        else
+                        {
+                            <div class="placeholder-image">Imagem não disponível</div>
+                        }
+                    </div>
+                    <div class="col-md-8">
+                        <dl class="row">
+                            <dt class="col-sm-3 text-right">Nome:</dt>
+                            <dd class="col-sm-9">@userFounded?.username</dd>
+
+                            <dt class="col-sm-3 text-right">Avaliação Media:</dt>
+                            <dd class="col-sm-9">@avaliacaoMedia</dd>
+
+                            <dt class="col-sm-3 text-right">Número de Leilões:</dt>
+                            <dd class="col-sm-9">@userFounded?.numeroDeLeiloesFeitos</dd>
+
+                            <dt class="col-sm-3 text-right">Data de Registro:</dt>
+                            <dd class="col-sm-9">@userFounded?.dataDeRegisto</dd>
+                        </dl>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="card mt-3">
+            <div class="card-header">
+                <h2>Leilões</h2>
+            </div>
+        </div>
+        @if (_leiloes == null)
+        {
+            <p>Nenhum leilão criado.</p>
+        }
+        else
+        {
+            <div class="grid">
+                @foreach (var leilao in _leiloes)
+                {
+                    <CardComponent leilao="leilao" />
+                }
+            </div>
+        }
+    </Authorized>
+    <NotAuthorized>
+        <h2>Not authorized</h2>
+    </NotAuthorized>
+</AuthorizeView>
+
+@code {
+    [Parameter]
+    public string Username { get; set; }
+    private UtilizadorModel userFounded;
+    private List<DataLayer.Leilao.LeilaoModel> _leiloes;
+    private string avaliacaoMedia;
+
+    protected override async Task OnInitializedAsync()
+    {
+        userFounded = await _db.Find(Username);
+
+        _leiloes = await LeilaoRepo.FindLeiloesUtilizador(userFounded.idUtilizador);
+        if (userFounded.avaliacaoMedia != 0)
+        {
+            double avaliacaoDoule = userFounded.avaliacaoMedia / userFounded.numeroDeLeiloesFeitos;
+            avaliacaoMedia = avaliacaoDoule.ToString("F2");
+        }
+        else
+        {
+            avaliacaoMedia = "O utilizador ainda não foi avaliado";
+        }
+    }
+}
+

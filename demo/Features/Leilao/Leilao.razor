@@ -1,0 +1,301 @@
+﻿@page "/leilao/{cardId}"
+@inject Microsoft.AspNetCore.Components.NavigationManager NavigationManager
+@using DataLayer.Leilao
+@using DataLayer.Watches
+@using System.Globalization;
+@using System.Threading
+@using DataLayer.Licitacao
+@using DataLayer.LeilaoFavorito
+@using DataLayer.Utilizador
+@using DataLayer.Notificacao
+@inject IJSRuntime JSRuntime
+@inject AuthenticationStateProvider authStateProvider
+@inject ILicitacaoRepository LicitacaoRepo
+@inject ILeilaoRepository LeilaoRepo
+@inject ILeilaoFavoritoRepository LeilaoFavoritoRepo
+@inject IUtilizadorRepository UserRepo
+@inject INotificacaoRepository NotificacaoRepo
+
+<PageTitle>Leilão</PageTitle>
+
+<AuthorizeView Roles="Client">
+    <Authorized>
+        <div class="container">
+            @if (watchInfo != null)
+            {
+                <div class="row">
+                    <div class="col-md-6">
+                        <div class="card">
+                            @if (watchInfo.Imagem != null && watchInfo.Imagem.Length > 0)
+                            {
+                                string imageBase64 = Convert.ToBase64String(watchInfo.Imagem);
+                                <img src="data:image/jpeg;base64,@imageBase64" alt="Luisinho" class="card-img-top img-fluid" style="width: 100%; height: 100%; object-fit: contain; border-radius: 3%;">
+                            }
+                            else
+                            {
+                                <div class="placeholder-image">Imagem não disponível</div>
+                            }
+                        </div>
+                        
+                        <div class="card">
+                            <div class="card-body">
+                                <h5 class="card-title">Licitação</h5>
+
+                                <button class="btn btn-primary" @onclick="IncrementValue20" style="margin-top: 10px; margin-bottom: 10px;">+20 €</button>
+                                <button class="btn btn-primary" @onclick="IncrementValue50" style="margin-top: 10px; margin-bottom: 10px;">+50 €</button>
+                                <button class="btn btn-primary" @onclick="IncrementValue100" style="margin-top: 10px; margin-bottom: 10px;">+100 €</button>
+
+                                <div class="form-group">
+                                    <label for="newBid">Insira o Valor da sua Licitação:</label>
+                                    <input type="text" class="form-control" id="newBid" @bind="newBidValue" />
+                                </div>
+
+                                <button class="btn btn-primary" @onclick="PlaceBid" style="margin-top: 10px;">Licitar</button>
+                            </div>
+                        </div>
+                        
+                    </div>
+                    <div class="col-md-6">
+                        <div class="card">
+                            <div class="card-body">
+                                <h5 class="card-title">@watchInfo.Marca @watchInfo.Modelo</h5>
+                                <p class="card-text">
+                                    @watchInfo.Descricao
+                                </p>
+                                <ul class="list-group">
+                                    <li class="list-group-item">
+                                        @if(userInfo.username.Equals(stateUsername))
+                                        {
+                                            <a href="/perfil">@userInfo.username</a>
+                                        } else
+                                        {
+                                            <a href="/perfilpublico/@userInfo.username">@userInfo.username</a>                                            
+                                        }
+                                    </li>
+                                    <li class="list-group-item">Número Série: @watchInfo.NumeroSerie</li>
+                                    <li class="list-group-item">Ano: @watchInfo.AnoFabrico </li>
+                                    <li class="list-group-item">Estado de Conservacao: @watchInfo.EstadoConservacao</li>
+                                    <li class="list-group-item">Caixa Original: @(watchInfo.TemCaixaOriginal ? "Sim" : "Não")</li>
+                                    <li class="list-group-item">Relogio Funciona: @(watchInfo.RelogioFunciona ? "Sim" : "Não")</li>
+                                    <li class="list-group-item">Data Inicío: @leilaoInfo.DataInicio</li>
+                                    <li class="list-group-item">Data Fim: @leilaoInfo.DataFim</li>
+                                    <li class="list-group-item">Preço Base: @watchInfo.PrecoBase€</li>
+                                </ul>
+                                <div class="card-footer">
+                                    <p class="text-muted">Lance atual: @leilaoInfo.LicitacaoAtual€</p>
+                                </div>
+                            </div>
+                        </div>
+
+                        <button class="btn btn-primary" @onclick="AdicionarFavoritos" style="margin-left: 20px;">Adicionar aos Favoritos</button>
+
+                        @if (isAuthor())
+                        {
+                            <button class="btn btn-primary btn-remove" @onclick="RemoverLeilao" style="margin-left: 20px;">Remover Leilão</button>
+                        }
+
+                        <div class="card">
+                            <div class="card-body">
+                                <h5 class="card-title">Licitação anterior</h5>
+                                <div class="grid">
+                                    <div class="licitacao-column">
+                                        @foreach (var licitacao in _licitacoes)
+                                        {
+                                            <div class="licitacao-item">
+                                                <LicitacaoComponent licitacao="licitacao" />
+                                            </div>
+                                        }
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            }
+        </div>
+    </Authorized>
+    <NotAuthorized>
+        <h2>Não estás logado</h2>
+    </NotAuthorized>
+</AuthorizeView>
+
+@code {
+    [Parameter]
+    public string CardId { get; set; }
+
+    private Timer tempoLicitacao;
+
+    private WatchModel watchInfo;
+
+    private UtilizadorModel userInfo;
+
+    private LeilaoModel leilaoInfo;
+
+    private List<DataLayer.Licitacao.LicitacaoModel> _licitacoes;
+
+    string username;
+
+    private int newBidValue;
+
+    private bool timerSet = false;
+
+    private string stateUsername;
+
+    private void IncrementValue20()
+    {
+        newBidValue += 20;
+        StateHasChanged();
+    }
+
+    private void IncrementValue50()
+    {
+        newBidValue += 50;
+        StateHasChanged();
+    }
+
+    private void IncrementValue100()
+    {
+        newBidValue += 100;
+        StateHasChanged();
+    }
+
+    private async Task PlaceBid()
+    {
+        Console.WriteLine($"New Bid: {newBidValue}");
+
+        if (DateTime.ParseExact(leilaoInfo.DataInicio, "MM/dd/yyyy HH:mm:ss", CultureInfo.InvariantCulture) > DateTime.UtcNow)
+        {
+            await JSRuntime.InvokeVoidAsync("alert", "O Leilao ainda não começou!");
+        }
+        else if (DateTime.ParseExact(leilaoInfo.DataFim, "MM/dd/yyyy HH:mm:ss", CultureInfo.InvariantCulture) < DateTime.UtcNow)
+        {
+            await JSRuntime.InvokeVoidAsync("alert", "O Leilao já terminou!");
+        }
+        else if (newBidValue <= leilaoInfo.LicitacaoAtual || newBidValue <= watchInfo.PrecoBase)
+        {
+            await JSRuntime.InvokeVoidAsync("alert", "O valor da Licitação tem de ser superior ao Lance atual e ao Preço base");
+        }
+        else
+        {
+            var authState = await authStateProvider.GetAuthenticationStateAsync();
+            var userIdString = authState.User.FindFirst("UserId")?.Value;
+            int userId = int.Parse(userIdString);
+            Console.WriteLine("UserId do estado da sessão: " + userId);
+
+            var novaLicitacao = new LicitacaoModel
+                {
+                    username = authState.User.Identity.Name,
+                    valor = newBidValue,
+                    Data = DateTime.UtcNow.ToString("yyyy-MM-dd HH:mm:ss"),
+                    Leilao_idUtilizador = int.Parse(CardId),
+                    Utilizador_idUtilizador = userId,
+                };
+
+            await LicitacaoRepo.Create(novaLicitacao);
+            await LeilaoRepo.UpdateLicitacaoAtual(int.Parse(CardId), newBidValue);
+
+            StateHasChanged();
+
+            NavigationManager.NavigateTo($"/leilao/{CardId}", forceLoad: true);
+        }
+    }
+
+    public async Task RemoverLeilao()
+    {
+        await LeilaoRepo.DeleteLeilao(int.Parse(CardId));
+
+        NavigationManager.NavigateTo("/home");
+    }
+
+
+    private bool isAuthor()
+    {
+        if (username == userInfo.username)
+        {
+            return true;
+        } 
+        else
+        {
+            return false;
+        }
+    }
+
+    protected override async Task OnInitializedAsync()
+    {
+        var authState2 = await authStateProvider.GetAuthenticationStateAsync();
+        var user2 = authState2.User;
+        stateUsername = user2.Identity.Name;
+        try
+        {
+            _licitacoes = await LicitacaoRepo.FindAllFromLeilao(int.Parse(CardId));
+
+            if (int.TryParse(CardId, out int cardIdAsInt))
+            {
+                watchInfo = await LeilaoRepo.FindWatch(cardIdAsInt);
+
+                leilaoInfo = await LeilaoRepo.Find(cardIdAsInt);           
+
+                Console.WriteLine($"Leilao id: {leilaoInfo.Id}");
+
+                userInfo = await LeilaoRepo.FindUser(leilaoInfo.Id);
+
+                if (userInfo == null) Console.WriteLine("User não existe");
+
+                if (watchInfo != null)
+                {
+                    if (watchInfo.Imagem != null && watchInfo.Imagem.Length > 0)
+                    {
+                        string imageBase64 = Convert.ToBase64String(watchInfo.Imagem);
+                    }
+                    else
+                    {
+                        Console.WriteLine("Imagem está vazia ou não inicializada.");
+                    }
+                }
+                else
+                {
+                    Console.WriteLine("Objeto WatchInfo é nulo.");
+                }
+            }
+            else
+            {
+                Console.WriteLine("CardId não é um número válido.");
+            }
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Erro ao recuperar informações do relógio: {ex.Message}");
+        }
+        if (leilaoInfo.LicitacaoAtual < watchInfo.PrecoBase)
+        {
+            newBidValue = (int)watchInfo.PrecoBase;
+        }
+        else
+        {
+            newBidValue = leilaoInfo.LicitacaoAtual;
+        }
+
+        var authState = await authStateProvider.GetAuthenticationStateAsync();
+        var user = authState.User;
+
+        username = user.Identity.Name;
+    }
+
+    private async Task AdicionarFavoritos()
+    {
+        var authState = await authStateProvider.GetAuthenticationStateAsync();
+        var userIdString = authState.User.FindFirst("UserId")?.Value;
+        int userId = int.Parse(userIdString);
+
+        var novoLeilaoFavorito = new LeilaoFavoritoModel
+            {
+                Utilizador_idUtilizador = userId,   
+                Leilao_idLeilao = int.Parse(CardId)
+            };
+
+        await LeilaoFavoritoRepo.Create(novoLeilaoFavorito);
+    }
+
+}
+
+

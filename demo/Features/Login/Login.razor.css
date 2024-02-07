@@ -1,0 +1,62 @@
+﻿.modal-dialog {
+    max-width: 500px;
+    margin: 50px auto;
+    background-color: rgba(0, 0, 0, 0.5);
+    border-radius: 10px;
+    color: white;
+    transition: background-color 0.3s;
+}
+
+.modal-body {
+    padding: 20px;
+}
+
+
+
+.form-group {
+    margin-bottom: 15px;
+}
+
+.form-control {
+    font-size: 16px;
+}
+
+.modal-title {
+    margin: 0;
+    padding: 10px;
+    color: white;
+    transition: font-weight 0.3s;
+}
+
+    .modal-title:hover {
+        font-weight: bold;
+    }
+
+.modal-header {
+    padding: 10px;
+}
+
+.button {
+    padding: 20px;
+}
+
+.btn-primary {
+    width: 30%; 
+    height: 50px;
+    font-size: 18px;
+    border: none;
+    background-color: #9C9C9C;
+    color: white;
+    transition: background-color 0.3s;
+}
+
+    .btn-primary:hover {
+        background-color: #333;
+    }
+
+hr {
+    margin-top: 20px;
+    margin-bottom: 20px;
+    border: 0;
+    border-top: 1px solid #ccc;
+}

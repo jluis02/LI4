@@ -1,0 +1,119 @@
+﻿@page "/registar"
+@layout SpecialLayout
+@inject NavigationManager NavigationManager
+@inject IJSRuntime JSRuntime
+@using DataLayer.Utilizador
+@inject IUtilizadorRepository _db
+@inject IJSRuntime js
+
+<PageTitle>Registrar</PageTitle>
+
+<form action="/register" method="post" asp-modal="true" @onsubmit="RegisterUser">
+    <div class="modal-dialog">
+        <div class="modal-content">
+
+            <div class="modal-header">
+                <h1 class="modal-title">Registar</h1>
+            </div>
+            <div class="modal-body">
+
+                <div class="form-group">
+                    <label for="username">Username:</label>
+                    <input type="username" id="username" name="username" placeholder="Username" class="form-control" @bind="nome">
+                </div>
+
+                <div class="form-group">
+                    <label for="email">Endereço de e-mail:</label>
+                    <input type="email" id="email" name="email" placeholder="Endereço de e-mail" class="form-control" @bind="mail">
+                </div>
+
+                <div class="form-group">
+                    <label for="password">Senha:</label>
+                    <input type="password" id="password" name="password" placeholder="Senha" class="form-control" @bind="cpassword">
+                </div>
+
+                <div class="form-group">
+                    <label for="confirmPassword">Confirmar senha:</label>
+                    <input type="password" id="confirmPassword" name="confirmPassword" placeholder="Confirmar senha" class="form-control" @bind="password">
+                </div>
+
+                <hr>
+
+                <div class="flex-item100percent">
+                    <label>Insira uma Imagem:</label>
+                    <div></div>
+                    <InputFile multiple OnChange="HandleFileInput" />
+                </div>
+
+                <div class="button text-center">
+                    <button type="submit" class="btn btn-primary">
+                        <strong>Registar</strong>
+                    </button>
+                </div>
+            </div>
+
+            <div class="modal-footer">
+                <!-- You can remove or customize the footer as needed -->
+            </div>
+        </div>
+    </div>
+</form>
+
+
+@code {
+    private string nome;
+    private string mail;
+    private string password;
+    private string cpassword;
+    private bool showMessageBox = false;
+
+    private byte[] imagemDeRei; // Alterada para ser um array de bytes
+
+    private async Task HandleFileInput(InputFileChangeEventArgs e)
+    {
+        var file = e.File;
+
+        using (var stream = file.OpenReadStream())
+        {
+            var memoryStream = new MemoryStream();
+            await stream.CopyToAsync(memoryStream);
+            imagemDeRei = memoryStream.ToArray();
+        }
+    }
+
+    private async Task RegisterUser()
+    {
+        Console.WriteLine("AQUI-----------------------------------------------------");
+        Console.WriteLine($"nome: {nome}");
+        Console.WriteLine($"password: {password}");
+
+        var novoUtilizador = new UtilizadorModel
+            {
+                username = nome,
+                email = mail,
+                password = password,
+                avaliacaoMedia = 0,
+                numeroDeLeiloesFeitos = 0,
+                dataDeRegisto = DateTime.UtcNow.ToString("yyyy-MM-dd HH:mm:ss"),
+                Imagem = imagemDeRei
+            };
+
+        UtilizadorModel userFounded = await _db.Find(nome);
+        if (userFounded != null)
+        {
+            await js.InvokeVoidAsync("alert", "Utilizador já existente");
+            return;
+        }
+        else if (cpassword != password)
+        {
+            await js.InvokeVoidAsync("alert", "Palavra-passe e confirmação diferentes");
+            return;
+        }
+        else
+        {
+            await _db.Create(novoUtilizador);
+            await js.InvokeVoidAsync("alert", "Utilizador criado com sucesso");
+            NavigationManager.NavigateTo("/");
+        }
+    }
+}
